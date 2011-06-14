@@ -1,0 +1,66 @@
+#container {
+  width: 750px;
+  margin: 0 auto;
+}
+header {
+  width: 400px;
+  margin: 0 auto 15px auto;
+  h1 a {
+  width: 400px;
+    display: inline-block;
+    height: 125px;
+    background: url("/logo.png") no-repeat;
+    text-indent: -9999em;
+    overflow: hidden;
+  }
+  span.motto {
+    font-size: 14px;
+    font-style: italic;
+  }
+}
+
+#main {
+  #search {
+    width: 450px;
+    margin: 0 auto 35px auto;
+    form {
+      position: relative;
+      input[type=text] {
+        width: 100%;
+        font-size: 17px;
+      }
+      input[type=submit] {
+        position: absolute;
+        top: 3px;
+        left: 470px;
+      }
+    }
+    .tip {
+      font-size: 14px;
+      color: #676767;
+    }
+  }
+  #examples {
+    table {
+      width: 100%;
+      td {
+        width: 125px;
+        text-align: center;
+        border-right: 1px solid #ccc;
+      }
+      td.last {
+        border: none;
+      }
+    }
+  }
+  #chart {
+    background: #ccc;
+  }
+}
+
+footer {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 12px;
+}
+
