@@ -1,28 +1,27 @@
+a, a:visited {
+  color: #666;
+}
 #container {
   width: 750px;
   margin: 0 auto;
 }
 header {
-  width: 400px;
-  margin: 0 auto 15px auto;
-  h1 a {
-  width: 400px;
-    display: inline-block;
-    height: 125px;
-    background: url("/logo.png") no-repeat;
-    text-indent: -9999em;
-    overflow: hidden;
-  }
-  span.motto {
-    font-size: 14px;
-    font-style: italic;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  h1 {
+    text-align: center;
+    a, a:visited {
+      font-size: 56px;
+      font-family: "Ultra", arial, serif;
+      color: #ff6600;
+      text-decoration: none;
+    }
   }
 }
-
 #main {
   #search {
     width: 450px;
-    margin: 0 auto 35px auto;
+    margin: 0 auto 45px auto;
     form {
       position: relative;
       input[type=text] {
@@ -41,15 +40,14 @@ header {
     }
   }
   #examples {
-    table {
-      width: 100%;
-      td {
-        width: 125px;
-        text-align: center;
-        border-right: 1px solid #ccc;
+    ul {
+      list-style-type: none;
+      li {
+        display: inline-block;
+        padding-right: 40px;
       }
-      td.last {
-        border: none;
+      li.last {
+        padding-right: 3px;
       }
     }
   }
@@ -57,10 +55,8 @@ header {
     background: #ccc;
   }
 }
-
 footer {
   margin-top: 10px;
   text-align: center;
   font-size: 12px;
 }
-

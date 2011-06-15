@@ -6,37 +6,32 @@
     <title>HN Trends</title>
     <meta name="description" content="Hacker News trends">
     <meta name="author" content="Jerod Santo">
+    <link href="http://fonts.googleapis.com/css?family=Ultra" rel="stylesheet">
     <link rel="stylesheet" href="/reset.css">
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
     <div id="container">
       <header>
-      <h1><a href="/">HN Trends</a></h1>
-        <!--<span class="motto">Insights into the collective consciousness of Hacker Newsers</span>-->
+        <h1><a href="/">HN Trends</a></h1>
       </header>
       <div id="main">
         <div id="search">
           <form action="/" method="get">
               <input type="text" name="q"></input>
-              <input type="submit" value="Search HN Trends"></input>
+              <input type="submit" value="Chart Trends"></input>
           </form>
           <div class="tip">Use commas to compare multiple terms (max 5)</div>
         </div>
         <div id="examples">
-          <h3>Examples</h3>
-          <table>
-            <tr>
-              <td><a href="/?q=coffeescript">coffeescript</a></td>
-              <td><a href="/?q=ruby,+python">ruby, python</a></td>
-              <td><a href="/?q=twitter,+facebook">twitter, facebook</a></td>
-              <td><a href="/?q=vim,+emacs">vim, emacs</a></td>
-              <td><a href="/?q=antennagate">antennagate</a></td>
-              <td class="last"><a href="/?q=clojure">clojure</a></td>
-            </tr>
-            <tr>
-            </tr>
-          </table>
+          <ul>
+            <li>examples:&nbsp;&nbsp;<a href="/?q=coffeescript">coffeescript</a></li>
+            <li><a href="/?q=ruby,+python">ruby, python</a></li>
+            <li><a href="/?q=twitter,+facebook">twitter, facebook</a></li>
+            <li><a href="/?q=vim,+emacs">vim, emacs</a></li>
+            <li><a href="/?q=antennagate">antennagate</a></li>
+            <li class="last"><a href="/?q=clojure">clojure</a></li>
+          </ul>
         </div>
         <div id="chart">&nbsp;</div>
       </div>
