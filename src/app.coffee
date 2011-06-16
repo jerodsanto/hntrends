@@ -5,9 +5,7 @@ sys    = require "sys"
 http   = require "http"
 rest   = require "restler"
 url    = require "url"
-qs     = require "querystring"
 static = require "node-static"
-io     = require "socket.io"
 file   = new static.Server("./public")
 redis  = require("redis").createClient()
 
@@ -18,19 +16,19 @@ class Quarter
     "create_ts:[#{@start} TO #{@end}]"
 
 class Term
-  constructor: (@term, @quarter, @client) ->
+  constructor: (@term, @quarter, @client, @last = false) ->
 
-  getTrend: ->
-    sys.puts "getTrend: #{@term} #{@quarter.id}"
+  getHits: ->
+    sys.puts "getHits: #{@term} #{@quarter.id}"
     redis.hget "hntrends:term:#{@term}", @quarter.id, (err, res) =>
       if res
         @hits = res
-        @sendTrend()
+        @storeHitsForClient()
       else
-        @getRemoteTrend()
+        @getRemoteHits()
 
-  getRemoteTrend: ->
-    sys.puts "getRemoteTrend: #{@term} #{@quarter.id}"
+  getRemoteHits: ->
+    sys.puts "getRemoteHits: #{@term} #{@quarter.id}"
     options = {
       query: {
         "q": @term, "filter[queries][]": @quarter.queryString()
@@ -45,16 +43,20 @@ class Term
     request.on "complete", (data) =>
       @hits = JSON.parse(data).hits
       redis.hset "hntrends:term:#{@term}", @quarter.id, @hits
-      @sendTrend()
+      @storeHitsForClient()
+
+  storeHitsForClient: ->
+    @client.termHits.push {
+      term: @term
+      quarter: @quarter.id
+      hits: @hits
+      last: @last
+    }
 
   sendTrend: ->
     @client.send {
       "term": @term, "quarter": @quarter.id, "hits": @hits
     }
-
-class FakeClient
-  send: ->
-    sys.puts
 
 # TODO - make this dynamic based on today's quarter
 quarters = [
@@ -77,18 +79,54 @@ quarters = [
   new Quarter "2011-1", "2011-01-01T00:00:00Z", "2011-03-31T23:59:59Z"
 ]
 
+clients = {}
+
 server = http.createServer (request, response) ->
-  request.addListener "end", ->
-    file.serve request, response
+  deets = url.parse(request.url, true)
+  switch deets.pathname
+    when "/terms"
+      if deets.query.q
+        terms    = deets.query.q.split(",")
+        clientId = _.uniqueId()
+
+        # initialize a new client object
+        clients[clientId] = {termHits: [], complete: false}
+
+        # store the term queried for later analysis
+        _.each terms, (term) ->
+          redis.zincrby "hntrends:queries", 1, term
+
+        # loop the terms for each quarter and get hits
+        _.each quarters, (quarter, i) ->
+          _.each terms, (term, j) ->
+            # special case for the last term in the last quarter
+            if (i + 1) == quarters.length && (j + 1) == terms.length
+              sys.puts "new term: last"
+              new Term(term, quarter, clients[clientId], true).getHits()
+            else
+              sys.puts "new term"
+              new Term(term, quarter, clients[clientId]).getHits()
+
+        # send the id back to browser for future requests
+        goodJSON response, {clientId: clientId}
+      else
+        # TODO - respond poorly
+        sys.puts "query string not defined"
+    when "/more"
+      client = clients[deets.query.clientId]
+      if client
+        more = client.termHits.shift()
+        if more
+          goodJSON response, more
+        else
+          goodJSON response, {noop: true}
+      else
+        sys.puts "client id not defined"
+    else
+      file.serve request, response
 
 server.listen 3000
 
-socket = io.listen server
-socket.on "connection", (client) ->
-  client.on "message", (message) ->
-    termList = message.split(",")
-    _.each termList, (term) ->
-      redis.zincrby "hntrends:queries", 1, term
-    _.each quarters, (quarter) ->
-      _.each termList, (term) ->
-        new Term(term, quarter, client).getTrend()
+goodJSON = (response, object) ->
+  response.writeHead 200, {"Content-Type": "text/plain"}
+  response.end JSON.stringify(object)

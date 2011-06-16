@@ -2,19 +2,14 @@
   var HNTrends;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   HNTrends = (function() {
-    function HNTrends(pendingPlots, maxY) {
+    function HNTrends(pendingPlots, maxY, clientId) {
       this.pendingPlots = pendingPlots != null ? pendingPlots : [];
       this.maxY = maxY != null ? maxY : 100;
+      this.clientId = clientId;
       this.plotPending = __bind(this.plotPending, this);
       this.handleMessage = __bind(this.handleMessage, this);
-      this.initSocket();
       this.initTerms();
     }
-    HNTrends.prototype.initSocket = function() {
-      this.socket = new io.Socket;
-      this.socket.connect();
-      return this.socket.on("message", this.handleMessage);
-    };
     HNTrends.prototype.initTerms = function() {
       var interval, termList, terms;
       terms = this.getParam("q");
@@ -26,13 +21,13 @@
         });
         this.terms = _.first(this.terms, 5);
         this.initChart();
-        this.submitTerms();
+        this.getTerms();
         interval = (function() {
           switch (this.terms.length) {
             case 1:
-              return 450;
+              return 425;
             case 2:
-              return 250;
+              return 225;
             case 3:
               return 200;
             default:
@@ -125,8 +120,32 @@
       this.chart = new Highcharts.Chart(options);
       return this.chart.get("skeleton").hide();
     };
-    HNTrends.prototype.submitTerms = function(terms) {
-      return this.socket.send(this.terms);
+    HNTrends.prototype.getTerms = function() {
+      return $.get("/terms", {
+        q: this.terms.join(",")
+      }, __bind(function(data) {
+        this.clientId = data.clientId;
+        return this.getMore();
+      }, this), "json");
+    };
+    HNTrends.prototype.getMore = function() {
+      return $.get("/more", {
+        clientId: this.clientId
+      }, __bind(function(data) {
+        if (data.noop) {
+          return this.getMore();
+        } else {
+          data.hits = parseInt(data.hits);
+          if (data.hits > this.maxY) {
+            this.maxY = data.hits;
+            this.chart.yAxis[0].setExtremes(0, this.maxY, true, false);
+          }
+          this.pendingPlots.push(data);
+          if (!data.last) {
+            return this.getMore();
+          }
+        }
+      }, this), "json");
     };
     HNTrends.prototype.getParam = function(name) {
       var regex, results;
@@ -147,12 +166,12 @@
       return this.pendingPlots.push(message);
     };
     HNTrends.prototype.plotPending = function() {
-      var message;
-      message = this.pendingPlots.shift();
-      if (!message) {
+      var data;
+      data = this.pendingPlots.shift();
+      if (!data) {
         return;
       }
-      return this.chart.get(message.term).addPoint(message.hits);
+      return this.chart.get(data.term).addPoint(data.hits);
     };
     return HNTrends;
   })();

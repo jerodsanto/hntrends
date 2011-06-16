@@ -1,12 +1,6 @@
 class HNTrends
-  constructor: (@pendingPlots = [], @maxY = 100)->
-    @initSocket()
+  constructor: (@pendingPlots = [], @maxY = 100, @clientId)->
     @initTerms()
-
-  initSocket: ->
-    @socket = new io.Socket
-    @socket.connect()
-    @socket.on "message", @handleMessage
 
   initTerms: ->
     terms = @getParam "q"
@@ -18,11 +12,11 @@ class HNTrends
         return t.trim().toLowerCase()
       @terms = _.first(@terms, 5)
       @initChart()
-      @submitTerms()
+      @getTerms()
       # interval depends on how many terms we'll be plotting
       interval = switch @terms.length
-        when 1 then 450
-        when 2 then 250
+        when 1 then 425
+        when 2 then 225
         when 3 then 200
         else 150
       setInterval @plotPending, interval
@@ -91,8 +85,25 @@ class HNTrends
     @chart = new Highcharts.Chart(options)
     @chart.get("skeleton").hide()
 
-  submitTerms: (terms) ->
-    @socket.send @terms
+  getTerms: ->
+    $.get "/terms", {q: @terms.join(",")}, (data) =>
+      @clientId = data.clientId
+      @getMore()
+    , "json"
+
+  getMore: ->
+    $.get "/more", {clientId: @clientId}, (data) =>
+      if data.noop
+        @getMore()
+      else
+        data.hits = parseInt data.hits
+        if data.hits > @maxY
+          @maxY = data.hits
+          @chart.yAxis[0].setExtremes(0, @maxY, true, false)
+        # just add new data to pendingPlots queue to be processed
+        @pendingPlots.push data
+        @getMore() unless data.last
+    , "json"
 
   getParam: (name) ->
     name    = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]")
@@ -101,7 +112,6 @@ class HNTrends
     return "" unless results
     return decodeURIComponent results[1].replace(/\+/g, " ")
 
-  # just add new data to pendingPlots queue to be processed
   handleMessage: (message) =>
     message.hits = parseInt message.hits
     if message.hits > @maxY
@@ -110,9 +120,9 @@ class HNTrends
     @pendingPlots.push message
 
   plotPending: =>
-    message = @pendingPlots.shift()
-    return unless message
-    @chart.get(message.term).addPoint(message.hits)
+    data = @pendingPlots.shift()
+    return unless data
+    @chart.get(data.term).addPoint(data.hits)
 
 $ ->
   window.HNTrends = new HNTrends()
