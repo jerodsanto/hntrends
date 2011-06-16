@@ -28,10 +28,8 @@
               return 425;
             case 2:
               return 225;
-            case 3:
-              return 200;
             default:
-              return 150;
+              return 200;
           }
         }).call(this);
         return setInterval(this.plotPending, interval);

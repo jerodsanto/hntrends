@@ -17,8 +17,7 @@ class HNTrends
       interval = switch @terms.length
         when 1 then 425
         when 2 then 225
-        when 3 then 200
-        else 150
+        else 200
       setInterval @plotPending, interval
 
 
