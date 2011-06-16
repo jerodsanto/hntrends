@@ -101,17 +101,14 @@ server = http.createServer (request, response) ->
           _.each terms, (term, j) ->
             # special case for the last term in the last quarter
             if (i + 1) == quarters.length && (j + 1) == terms.length
-              sys.puts "new term: last"
               new Term(term, quarter, clients[clientId], true).getHits()
             else
-              sys.puts "new term"
               new Term(term, quarter, clients[clientId]).getHits()
 
         # send the id back to browser for future requests
         goodJSON response, {clientId: clientId}
       else
-        # TODO - respond poorly
-        sys.puts "query string not defined"
+        badJSON response, {status: "missing required terms"}
     when "/more"
       client = clients[deets.query.clientId]
       if client
@@ -121,7 +118,7 @@ server = http.createServer (request, response) ->
         else
           goodJSON response, {noop: true}
       else
-        sys.puts "client id not defined"
+        badJSON response, {status: "missing or unknown client id"}
     else
       file.serve request, response
 
@@ -129,4 +126,8 @@ server.listen 3000
 
 goodJSON = (response, object) ->
   response.writeHead 200, {"Content-Type": "text/plain"}
+  response.end JSON.stringify(object)
+
+badJSON = (response, object) ->
+  response.writeHead 422, {"Content-Type": "text/plain"}
   response.end JSON.stringify(object)
