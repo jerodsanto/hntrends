@@ -58,7 +58,6 @@ class FakeClient
 
 # TODO - make this dynamic based on today's quarter
 quarters = [
-  new Quarter "2006-4", "2006-10-01T00:00:00Z", "2006-12-31T23:59:59Z"
   new Quarter "2007-1", "2007-01-01T00:00:00Z", "2007-03-31T23:59:59Z"
   new Quarter "2007-2", "2007-04-01T00:00:00Z", "2007-06-30T23:59:59Z"
   new Quarter "2007-3", "2007-07-01T00:00:00Z", "2007-09-30T23:59:59Z"
@@ -78,8 +77,6 @@ quarters = [
   new Quarter "2011-1", "2011-01-01T00:00:00Z", "2011-03-31T23:59:59Z"
 ]
 
-#test = new FakeClient
-#new Term("facebook", quarters[1], test).getTrend()
 server = http.createServer (request, response) ->
   request.addListener "end", ->
     file.serve request, response
