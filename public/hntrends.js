@@ -17,7 +17,7 @@
         $("input[type=text]:first").val(terms);
         termList = terms.split(",");
         this.terms = _.map(termList, function(t) {
-          return t.trim().toLowerCase();
+          return $.trim(t.toLowerCase());
         });
         this.terms = _.first(this.terms, 5);
         this.initChart();

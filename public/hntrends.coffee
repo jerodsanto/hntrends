@@ -9,7 +9,7 @@ class HNTrends
       $("input[type=text]:first").val terms
       termList = terms.split ","
       @terms = _.map termList, (t) ->
-        return t.trim().toLowerCase()
+        return $.trim t.toLowerCase()
       @terms = _.first(@terms, 5)
       @initChart()
       @getTerms()

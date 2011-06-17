@@ -81,6 +81,17 @@ quarters = [
 
 clients = {}
 
+respondWithJSON = (response, code, object) ->
+  response.writeHead code, {"Content-Type": "text/plain"}
+  response.end JSON.stringify(object)
+
+purgeOldClients = ->
+  now = new Date()
+  _.each clients, (object, key) ->
+    if now - object.timestamp > 30 * 1000
+      sys.puts "timing out client: #{key}"
+      delete clients[key]
+
 server = http.createServer (request, response) ->
   deets = url.parse(request.url, true)
   switch deets.pathname
@@ -90,7 +101,7 @@ server = http.createServer (request, response) ->
         clientId = _.uniqueId()
 
         # initialize a new client object
-        clients[clientId] = {termHits: [], complete: false}
+        clients[clientId] = {termHits: [], complete: false, timestamp: new Date()}
 
         # store the term queried for later analysis
         _.each terms, (term) ->
@@ -106,28 +117,22 @@ server = http.createServer (request, response) ->
               new Term(term, quarter, clients[clientId]).getHits()
 
         # send the id back to browser for future requests
-        goodJSON response, {clientId: clientId}
+        respondWithJSON response, 200, {clientId: clientId}
       else
-        badJSON response, {status: "missing required terms"}
+        respondWithJSON response, 422, {status: "missing required terms"}
     when "/more"
       client = clients[deets.query.clientId]
       if client
+        client.timestamp = new Date()
         more = client.termHits.shift()
         if more
-          goodJSON response, more
+          respondWithJSON response, 200, more
         else
-          goodJSON response, {noop: true}
+          respondWithJSON response, 200, {noop: true}
       else
-        badJSON response, {status: "missing or unknown client id"}
+        respondWithJSON response, 422, {status: "missing or unknown client id"}
     else
       file.serve request, response
 
 server.listen 3000
-
-goodJSON = (response, object) ->
-  response.writeHead 200, {"Content-Type": "text/plain"}
-  response.end JSON.stringify(object)
-
-badJSON = (response, object) ->
-  response.writeHead 422, {"Content-Type": "text/plain"}
-  response.end JSON.stringify(object)
+setInterval purgeOldClients, 3000
