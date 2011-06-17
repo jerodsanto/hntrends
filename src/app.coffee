@@ -19,7 +19,6 @@ class Term
   constructor: (@term, @quarter, @client, @last = false) ->
 
   getHits: ->
-    sys.puts "getHits: #{@term} #{@quarter.id}"
     redis.hget "hntrends:term:#{@term}", @quarter.id, (err, res) =>
       if res
         @hits = res
@@ -28,7 +27,6 @@ class Term
         @getRemoteHits()
 
   getRemoteHits: ->
-    sys.puts "getRemoteHits: #{@term} #{@quarter.id}"
     options = {
       query: {
         "q": @term, "filter[queries][]": @quarter.queryString()
@@ -89,7 +87,6 @@ purgeOldClients = ->
   now = new Date()
   _.each clients, (object, key) ->
     if now - object.timestamp > 30 * 1000
-      sys.puts "timing out client: #{key}"
       delete clients[key]
 
 server = http.createServer (request, response) ->
@@ -97,6 +94,7 @@ server = http.createServer (request, response) ->
   switch deets.pathname
     when "/terms"
       if deets.query.q
+        sys.puts "terms request: #{request.url}"
         terms    = deets.query.q.split(",")
         clientId = _.uniqueId()
 
@@ -119,6 +117,7 @@ server = http.createServer (request, response) ->
         # send the id back to browser for future requests
         respondWithJSON response, 200, {clientId: clientId}
       else
+        sys.puts "bad request: #{request.url}"
         respondWithJSON response, 422, {status: "missing required terms"}
     when "/more"
       client = clients[deets.query.clientId]
@@ -130,9 +129,13 @@ server = http.createServer (request, response) ->
         else
           respondWithJSON response, 200, {noop: true}
       else
+        sys.puts "bad request: #{request.url}"
         respondWithJSON response, 422, {status: "missing or unknown client id"}
     else
       file.serve request, response
 
-server.listen 3000
+port = process.env.PORT || 3000
+server.listen port, ->
+  sys.puts "listening on port #{port}..."
+
 setInterval purgeOldClients, 3000
