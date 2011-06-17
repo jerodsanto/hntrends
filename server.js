@@ -1,5 +1,5 @@
 (function() {
-  var API_URI, Quarter, Term, clients, file, http, port, purgeOldClients, quarters, redis, respondWithJSON, rest, server, static, sys, url, _;
+  var API_URI, Quarter, Term, clients, file, http, port, purgeOldClients, quarters, redis, respondWithJSON, rest, rtg, server, static, sys, url, _;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   API_URI = "http://api.thriftdb.com/api.hnsearch.com/items/_search";
   _ = require("underscore");
@@ -9,7 +9,13 @@
   url = require("url");
   static = require("node-static");
   file = new static.Server("./public");
-  redis = require("redis").createClient();
+  if (process.env.REDISTOGO_URL) {
+    rtg = url.parse(process.env.REDISTOGO_URL);
+    redis = require("redis").createClient(rtg.port, rtg.hostname);
+    redis.auth(rtg.auth.split(":")[1]);
+  } else {
+    redis = require("redis").createClient();
+  }
   Quarter = (function() {
     function Quarter(id, start, end) {
       this.id = id;
