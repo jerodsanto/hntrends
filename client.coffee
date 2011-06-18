@@ -4,9 +4,10 @@ class HNTrends
 
   initTerms: ->
     terms = @getParam "q"
+    input = $("input[type=text]:first")
 
     if terms.length
-      $("input[type=text]:first").val terms
+      input.val terms
       termList = terms.split ","
       @terms = _.map termList, (t) ->
         return $.trim t.toLowerCase()
@@ -19,12 +20,14 @@ class HNTrends
         when 2 then 225
         else 200
       setInterval @plotPending, interval
+    else
+      input.focus()
 
 
   initChart: ->
     $("#examples").hide()
     options =
-      colors: ["#FFFFFF", "#E90000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"]
+      colors: ["#FFFFFF", "#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"]
       chart:
         renderTo: "chart"
         ignoreHiddenSeries: false

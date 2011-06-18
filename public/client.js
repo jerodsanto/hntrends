@@ -10,10 +10,11 @@
       this.initTerms();
     }
     HNTrends.prototype.initTerms = function() {
-      var interval, termList, terms;
+      var input, interval, termList, terms;
       terms = this.getParam("q");
+      input = $("input[type=text]:first");
       if (terms.length) {
-        $("input[type=text]:first").val(terms);
+        input.val(terms);
         termList = terms.split(",");
         this.terms = _.map(termList, function(t) {
           return $.trim(t.toLowerCase());
@@ -32,13 +33,15 @@
           }
         }).call(this);
         return setInterval(this.plotPending, interval);
+      } else {
+        return input.focus();
       }
     };
     HNTrends.prototype.initChart = function() {
       var options;
       $("#examples").hide();
       options = {
-        colors: ["#FFFFFF", "#E90000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"],
+        colors: ["#FFFFFF", "#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"],
         chart: {
           renderTo: "chart",
           ignoreHiddenSeries: false
