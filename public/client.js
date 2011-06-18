@@ -139,10 +139,9 @@
             this.chart.yAxis[0].setExtremes(0, this.maxY, true, false);
           }
           this.pendingPlots.push(data);
-          if (data.last) {
-            return false;
+          if (!data.last) {
+            return this.getMore();
           }
-          return this.getMore();
         }
       }, this));
     };
@@ -167,6 +166,9 @@
     return HNTrends;
   })();
   $(function() {
+    $.ajaxSetup({
+      cache: false
+    });
     return window.HNTrends = new HNTrends();
   });
 }).call(this);

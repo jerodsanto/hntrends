@@ -101,8 +101,7 @@ class HNTrends
           @chart.yAxis[0].setExtremes(0, @maxY, true, false)
         # just add new data to pendingPlots queue to be processed
         @pendingPlots.push data
-        return false if data.last
-        @getMore()
+        @getMore() unless data.last
 
   getParam: (name) ->
     name    = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]")
@@ -117,4 +116,7 @@ class HNTrends
     @chart.get(data.term).addPoint(data.hits)
 
 $ ->
+  $.ajaxSetup {
+    cache: false
+  }
   window.HNTrends = new HNTrends()
