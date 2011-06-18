@@ -7,7 +7,6 @@
       this.maxY = maxY != null ? maxY : 100;
       this.clientId = clientId;
       this.plotPending = __bind(this.plotPending, this);
-      this.handleMessage = __bind(this.handleMessage, this);
       this.initTerms();
     }
     HNTrends.prototype.initTerms = function() {
@@ -78,6 +77,7 @@
             x: 0,
             y: -2
           },
+          max: this.maxY,
           min: 0
         },
         plotOptions: {
@@ -119,15 +119,15 @@
       return this.chart.get("skeleton").hide();
     };
     HNTrends.prototype.getTerms = function() {
-      return $.get("/terms", {
+      return $.getJSON("/terms", {
         q: this.terms.join(",")
       }, __bind(function(data) {
         this.clientId = data.clientId;
         return this.getMore();
-      }, this), "json");
+      }, this));
     };
     HNTrends.prototype.getMore = function() {
-      return $.get("/more", {
+      return $.getJSON("/more", {
         clientId: this.clientId
       }, __bind(function(data) {
         if (data.noop) {
@@ -139,11 +139,12 @@
             this.chart.yAxis[0].setExtremes(0, this.maxY, true, false);
           }
           this.pendingPlots.push(data);
-          if (!data.last) {
-            return this.getMore();
+          if (data.last) {
+            return false;
           }
+          return this.getMore();
         }
-      }, this), "json");
+      }, this));
     };
     HNTrends.prototype.getParam = function(name) {
       var regex, results;
@@ -154,14 +155,6 @@
         return "";
       }
       return decodeURIComponent(results[1].replace(/\+/g, " "));
-    };
-    HNTrends.prototype.handleMessage = function(message) {
-      message.hits = parseInt(message.hits);
-      if (message.hits > this.maxY) {
-        this.maxY = message.hits;
-        this.chart.yAxis[0].setExtremes(0, this.maxY, true, false);
-      }
-      return this.pendingPlots.push(message);
     };
     HNTrends.prototype.plotPending = function() {
       var data;

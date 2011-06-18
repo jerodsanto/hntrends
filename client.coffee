@@ -56,6 +56,7 @@ class HNTrends
           align: "left"
           x: 0
           y: -2
+        max: @maxY
         min: 0
       plotOptions:
         line:
@@ -85,13 +86,12 @@ class HNTrends
     @chart.get("skeleton").hide()
 
   getTerms: ->
-    $.get "/terms", {q: @terms.join(",")}, (data) =>
+    $.getJSON "/terms", {q: @terms.join(",")}, (data) =>
       @clientId = data.clientId
       @getMore()
-    , "json"
 
   getMore: ->
-    $.get "/more", {clientId: @clientId}, (data) =>
+    $.getJSON "/more", {clientId: @clientId}, (data) =>
       if data.noop
         @getMore()
       else
@@ -101,8 +101,8 @@ class HNTrends
           @chart.yAxis[0].setExtremes(0, @maxY, true, false)
         # just add new data to pendingPlots queue to be processed
         @pendingPlots.push data
-        @getMore() unless data.last
-    , "json"
+        return false if data.last
+        @getMore()
 
   getParam: (name) ->
     name    = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]")
@@ -110,13 +110,6 @@ class HNTrends
     results = regex.exec window.location.href
     return "" unless results
     return decodeURIComponent results[1].replace(/\+/g, " ")
-
-  handleMessage: (message) =>
-    message.hits = parseInt message.hits
-    if message.hits > @maxY
-      @maxY = message.hits
-      @chart.yAxis[0].setExtremes(0, @maxY, true, false)
-    @pendingPlots.push message
 
   plotPending: =>
     data = @pendingPlots.shift()
