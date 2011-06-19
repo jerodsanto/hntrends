@@ -1,5 +1,12 @@
 class HNTrends
   constructor: (@pendingPlots = [], @maxY = 100, @clientId)->
+    @quarters = [
+      "2007", "Q2 2007", "Q3 2007", "Q4 2007"
+    "2008", "Q2 2008", "Q3 2008", "Q4 2008",
+      "2009", "Q2 2009", "Q3 2009", "Q4 2009",
+    "2010", "Q2 2010", "Q3 2010", "Q4 2010",
+    "2011"
+    ]
     @initTerms()
 
   initTerms: ->
@@ -27,14 +34,11 @@ class HNTrends
   initChart: ->
     $("#examples").hide()
     options =
-      colors: ["#FFFFFF", "#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"]
+      colors: ["#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"]
       chart:
         renderTo: "chart"
-        ignoreHiddenSeries: false
       title: null
       legend:
-        itemHiddenStyle:
-          color: "#FFF"
         itemStyle:
           color: "#666"
         borderWidth: 0
@@ -43,11 +47,9 @@ class HNTrends
         align: "left"
         x: 70
         verticalAlign: "top"
-        y: -7
+        y: 0
       xAxis:
-        categories: ["2007", "Q2 2007", "Q3 2007", "Q4 2007"
-        "2008", "Q2 2008", "Q3 2008", "Q4 2008", "2009", "Q2 2009",
-        "Q3 2009", "Q4 2009", "2010", "Q2 2010", "Q3 2010", "Q4 2010", "2011"]
+        categories: @quarters
         labels:
           step: 4
       yAxis:
@@ -75,18 +77,15 @@ class HNTrends
                 symbol: "circle"
                 radius: 5
                 lineWidth: 1
+      series: []
 
-      series: [{
-        name: "oh hai!"
-        id: "skeleton"
-        data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-      }]
+    # using this as series data allows the categories to be static
+    nullFill = _.map @quarters, (q) -> null
 
     _.each @terms, (term) ->
-      options.series.push {name: term, id: term}
+      options.series.push {name: term, id: term, data: nullFill }
 
     @chart = new Highcharts.Chart(options)
-    @chart.get("skeleton").hide()
 
   getTerms: ->
     $.getJSON "/terms", {q: @terms.join(",")}, (data) =>
@@ -116,7 +115,11 @@ class HNTrends
   plotPending: =>
     data = @pendingPlots.shift()
     return unless data
-    @chart.get(data.term).addPoint(data.hits)
+    series = @chart.get(data.term)
+    # store the index of the next null point to be filled on the series
+    series.next or= 0
+    series.data[series.next].update(data.hits)
+    series.next++
 
 $ ->
   $.ajaxSetup {

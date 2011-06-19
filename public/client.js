@@ -7,6 +7,7 @@
       this.maxY = maxY != null ? maxY : 100;
       this.clientId = clientId;
       this.plotPending = __bind(this.plotPending, this);
+      this.quarters = ["2007", "Q2 2007", "Q3 2007", "Q4 2007", "2008", "Q2 2008", "Q3 2008", "Q4 2008", "2009", "Q2 2009", "Q3 2009", "Q4 2009", "2010", "Q2 2010", "Q3 2010", "Q4 2010", "2011"];
       this.initTerms();
     }
     HNTrends.prototype.initTerms = function() {
@@ -38,19 +39,15 @@
       }
     };
     HNTrends.prototype.initChart = function() {
-      var options;
+      var nullFill, options;
       $("#examples").hide();
       options = {
-        colors: ["#FFFFFF", "#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"],
+        colors: ["#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"],
         chart: {
-          renderTo: "chart",
-          ignoreHiddenSeries: false
+          renderTo: "chart"
         },
         title: null,
         legend: {
-          itemHiddenStyle: {
-            color: "#FFF"
-          },
           itemStyle: {
             color: "#666"
           },
@@ -60,10 +57,10 @@
           align: "left",
           x: 70,
           verticalAlign: "top",
-          y: -7
+          y: 0
         },
         xAxis: {
-          categories: ["2007", "Q2 2007", "Q3 2007", "Q4 2007", "2008", "Q2 2008", "Q3 2008", "Q4 2008", "2009", "Q2 2009", "Q3 2009", "Q4 2009", "2010", "Q2 2010", "Q3 2010", "Q4 2010", "2011"],
+          categories: this.quarters,
           labels: {
             step: 4
           }
@@ -104,22 +101,19 @@
             }
           }
         },
-        series: [
-          {
-            name: "oh hai!",
-            id: "skeleton",
-            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-          }
-        ]
+        series: []
       };
+      nullFill = _.map(this.quarters, function(q) {
+        return null;
+      });
       _.each(this.terms, function(term) {
         return options.series.push({
           name: term,
-          id: term
+          id: term,
+          data: nullFill
         });
       });
-      this.chart = new Highcharts.Chart(options);
-      return this.chart.get("skeleton").hide();
+      return this.chart = new Highcharts.Chart(options);
     };
     HNTrends.prototype.getTerms = function() {
       return $.getJSON("/terms", {
@@ -159,12 +153,15 @@
       return decodeURIComponent(results[1].replace(/\+/g, " "));
     };
     HNTrends.prototype.plotPending = function() {
-      var data;
+      var data, series;
       data = this.pendingPlots.shift();
       if (!data) {
         return;
       }
-      return this.chart.get(data.term).addPoint(data.hits);
+      series = this.chart.get(data.term);
+      series.next || (series.next = 0);
+      series.data[series.next].update(data.hits);
+      return series.next++;
     };
     return HNTrends;
   })();
