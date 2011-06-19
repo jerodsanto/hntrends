@@ -49,7 +49,9 @@
       options = {
         query: {
           "q": this.term,
-          "filter[queries][]": this.quarter.queryString()
+          "filter[queries][]": this.quarter.queryString(),
+          "limit": 0,
+          "weights[username]": 0.0
         }
       };
       request = rest.get(API_URI, options);

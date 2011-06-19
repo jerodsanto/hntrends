@@ -35,7 +35,10 @@ class Term
   getRemoteHits: ->
     options = {
       query: {
-        "q": @term, "filter[queries][]": @quarter.queryString()
+        "q": @term
+        "filter[queries][]": @quarter.queryString()
+        "limit": 0
+        "weights[username]": 0.0
       }
     }
 
