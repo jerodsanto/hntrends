@@ -46,10 +46,12 @@ header {
       padding-right: 3px; }
 
 footer {
-  margin-top: 20px;
+  margin-top: 30px;
   text-align: center;
   font-family: Helvetica, arial, sans-serif;
-  font-size: 10px;
+  font-size: 11px;
   color: #666; }
   footer p {
     margin: 3px; }
+  footer iframe {
+    vertical-align: middle; }

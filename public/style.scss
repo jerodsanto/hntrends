@@ -62,9 +62,12 @@ footer {
   p {
     margin: 3px;
   }
-  margin-top: 20px;
+  margin-top: 30px;
   text-align: center;
   font-family: Helvetica, arial, sans-serif;
-  font-size: 10px;
+  font-size: 11px;
   color: #666;
+  iframe {
+    vertical-align: middle;
+  }
 }
