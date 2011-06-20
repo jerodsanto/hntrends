@@ -1,6 +1,9 @@
 (function() {
   var HNTrends;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  $.ajaxSetup({
+    cache: false
+  });
   HNTrends = (function() {
     function HNTrends(pendingPlots, maxY, clientId) {
       this.pendingPlots = pendingPlots != null ? pendingPlots : [];
@@ -16,6 +19,7 @@
       input = $("input[type=text]:first");
       if (terms.length) {
         input.val(terms);
+        $(".twitter-share-button").attr("data-url", "" + window.location.host + "/q=" + terms);
         termList = terms.split(",");
         this.terms = _.map(termList, function(t) {
           return $.trim(t.toLowerCase());
@@ -165,10 +169,5 @@
     };
     return HNTrends;
   })();
-  $(function() {
-    $.ajaxSetup({
-      cache: false
-    });
-    return window.HNTrends = new HNTrends();
-  });
+  window.HNTrends = new HNTrends();
 }).call(this);

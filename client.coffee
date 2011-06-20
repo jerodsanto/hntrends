@@ -1,3 +1,7 @@
+$.ajaxSetup {
+  cache: false
+}
+
 class HNTrends
   constructor: (@pendingPlots = [], @maxY = 100, @clientId)->
     @quarters = [
@@ -15,6 +19,7 @@ class HNTrends
 
     if terms.length
       input.val terms
+      $(".twitter-share-button").attr "data-url", "#{window.location.host}/q=#{terms}"
       termList = terms.split ","
       @terms = _.map termList, (t) ->
         return $.trim t.toLowerCase()
@@ -121,8 +126,4 @@ class HNTrends
     series.data[series.next].update(data.hits)
     series.next++
 
-$ ->
-  $.ajaxSetup {
-    cache: false
-  }
-  window.HNTrends = new HNTrends()
+window.HNTrends = new HNTrends()
