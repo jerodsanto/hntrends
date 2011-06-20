@@ -15,6 +15,9 @@ if process.env.REDISTOGO_URL
 else
   redis = require("redis").createClient()
 
+unixTime = (date) ->
+  Math.round(date.getTime() / 1000)
+
 class Quarter
   constructor: (@id, @start, @end) ->
 
@@ -49,7 +52,9 @@ class Term
 
     request.on "complete", (data) =>
       @hits = JSON.parse(data).hits
-      redis.hset "hntrends:term:#{@term}", @quarter.id, @hits
+      key = "hntrends:term:#{@term}"
+      redis.hset key, @quarter.id, @hits
+      redis.expireat key, unixTime(new Date("2011-07-01 GMT"))
       @storeHitsForClient()
 
   storeHitsForClient: ->
