@@ -4,13 +4,6 @@ $.ajaxSetup {
 
 class HNTrends
   constructor: (@pendingPlots = [], @maxY = 100, @clientId)->
-    @quarters = [
-      "2007", "Q2 2007", "Q3 2007", "Q4 2007"
-    "2008", "Q2 2008", "Q3 2008", "Q4 2008",
-      "2009", "Q2 2009", "Q3 2009", "Q4 2009",
-    "2010", "Q2 2010", "Q3 2010", "Q4 2010",
-    "2011"
-    ]
     @initTerms()
 
   initTerms: ->
@@ -24,17 +17,21 @@ class HNTrends
       @terms = _.map termList, (t) ->
         return $.trim t.toLowerCase()
       @terms = _.first(@terms, 5)
-      @initChart()
-      @getTerms()
       # interval depends on how many terms we'll be plotting
       interval = switch @terms.length
         when 1 then 425
         when 2 then 225
         else 200
       setInterval @plotPending, interval
+      @getQuarters()
     else
       input.focus()
 
+  getQuarters: ->
+    $.getJSON "/quarters", (data) =>
+      @quarters = data
+      @initChart()
+      @getTerms()
 
   initChart: ->
     $("#examples").hide()
@@ -43,6 +40,12 @@ class HNTrends
       chart:
         renderTo: "chart"
       title: null
+      tooltip:
+        crosshairs: true
+        formatter: ->
+          a = Highcharts.numberFormat(this.y, 0, ",")
+          b = Highcharts.numberFormat(this.point.actual, 0, ",")
+          "<b>#{this.series.name}</b>in #{this.x}: #{a} adjusted (#{b} actual)"
       legend:
         itemStyle:
           color: "#666"
@@ -54,19 +57,18 @@ class HNTrends
         verticalAlign: "top"
         y: 0
       xAxis:
-        categories: @quarters
+        categories: _.map(@quarters, (q) -> return q.name)
         labels:
           step: 4
       yAxis:
         title:
-          text: "Hacker Mentions"
+          text: "Hacker Mentions (adjusted for growth)"
           style:
             color: "#ff6600"
         labels:
           align: "left"
           x: 0
           y: -2
-        max: @maxY
         min: 0
       plotOptions:
         line:
@@ -103,9 +105,6 @@ class HNTrends
         @getMore()
       else
         data.hits = parseInt data.hits
-        if data.hits > @maxY
-          @maxY = data.hits
-          @chart.yAxis[0].setExtremes(0, @maxY, true, false)
         # just add new data to pendingPlots queue to be processed
         @pendingPlots.push data
         @getMore() unless data.last
@@ -123,7 +122,12 @@ class HNTrends
     series = @chart.get(data.term)
     # store the index of the next null point to be filled on the series
     series.next or= 0
-    series.data[series.next].update(data.hits)
+    quarter  = @quarters[series.next]
+    adjusted = parseInt(data.hits * quarter.factor)
+    series.data[series.next].update({y: adjusted, actual: data.hits})
     series.next++
 
 window.HNTrends = new HNTrends()
+$("#more").click (ev)->
+  ev.preventDefault()
+  $("#lightbox").lightbox_me {centered: true}

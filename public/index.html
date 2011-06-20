@@ -46,13 +46,38 @@
       &nbsp;&bull;&nbsp;
       Inspired by <a href="http://www.google.com/trends">Google Trends</a>
       &nbsp;&bull;&nbsp;
+      Learn <a id="more" href="javascript:void(0);">More</a>
+      &nbsp;&bull;&nbsp;
       <a href="http://twitter.com/share" class="twitter-share-button" data-count="none" data-via="sant0sk1">Tweet</a>
       </p>
       </footer>
+      <div id="lightbox" style="display: none;">
+        <h3>Adjustments</h3>
+        <p>Each data point is adjusted to account for HN's growth. The
+        adjustment factor is the difference between the most recent quarter's
+        total items (submissions + comments) and the total items in the point's
+        quarter.</p>
+        <p>So, for example, Q1 2007 had 7,683 total items and Q1 2011 had 311,190
+        total items. The adjustment factor for data points in Q1 2007 is 40.5
+        (until Q2 2011 begins, at which point it changes).
+        </p>
+        <p>A big thanks to <a href="http://news.ycombinator.com/user?id=retube">retube</a>
+        for the adjustment scheme.</p>
+        <p>The actual number of mentions is included with each point for
+        reference purposes.</p>
+        <h3>Tech</h3>
+        <p>This little ditty wouldn't be possible without a handful of awesome
+        open source projects, including:</p>
+        <p>CoffeeScript, Node.js, Redis, jQuery, and Highcharts</p>
+        <h3>Hosting</h3>
+        <p>The site is proudly hosted on Heroku's Cedar Stack with the Redis To Go
+        add-on.</p>
+      </div>
     </div>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js"></script>
     <script src="/highcharts.js"></script>
     <script src="/underscore-min.js"></script>
+    <script src="/jquery.lightbox_me.js"></script>
     <script src="/client.js"></script>
     <script type="text/javascript">
       var _gaq = _gaq || [];

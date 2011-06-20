@@ -10,7 +10,6 @@
       this.maxY = maxY != null ? maxY : 100;
       this.clientId = clientId;
       this.plotPending = __bind(this.plotPending, this);
-      this.quarters = ["2007", "Q2 2007", "Q3 2007", "Q4 2007", "2008", "Q2 2008", "Q3 2008", "Q4 2008", "2009", "Q2 2009", "Q3 2009", "Q4 2009", "2010", "Q2 2010", "Q3 2010", "Q4 2010", "2011"];
       this.initTerms();
     }
     HNTrends.prototype.initTerms = function() {
@@ -25,8 +24,6 @@
           return $.trim(t.toLowerCase());
         });
         this.terms = _.first(this.terms, 5);
-        this.initChart();
-        this.getTerms();
         interval = (function() {
           switch (this.terms.length) {
             case 1:
@@ -37,10 +34,18 @@
               return 200;
           }
         }).call(this);
-        return setInterval(this.plotPending, interval);
+        setInterval(this.plotPending, interval);
+        return this.getQuarters();
       } else {
         return input.focus();
       }
+    };
+    HNTrends.prototype.getQuarters = function() {
+      return $.getJSON("/quarters", __bind(function(data) {
+        this.quarters = data;
+        this.initChart();
+        return this.getTerms();
+      }, this));
     };
     HNTrends.prototype.initChart = function() {
       var nullFill, options;
@@ -51,6 +56,15 @@
           renderTo: "chart"
         },
         title: null,
+        tooltip: {
+          crosshairs: true,
+          formatter: function() {
+            var a, b;
+            a = Highcharts.numberFormat(this.y, 0, ",");
+            b = Highcharts.numberFormat(this.point.actual, 0, ",");
+            return "<b>" + this.series.name + "</b>in " + this.x + ": " + a + " adjusted (" + b + " actual)";
+          }
+        },
         legend: {
           itemStyle: {
             color: "#666"
@@ -64,14 +78,16 @@
           y: 0
         },
         xAxis: {
-          categories: this.quarters,
+          categories: _.map(this.quarters, function(q) {
+            return q.name;
+          }),
           labels: {
             step: 4
           }
         },
         yAxis: {
           title: {
-            text: "Hacker Mentions",
+            text: "Hacker Mentions (adjusted for growth)",
             style: {
               color: "#ff6600"
             }
@@ -81,7 +97,6 @@
             x: 0,
             y: -2
           },
-          max: this.maxY,
           min: 0
         },
         plotOptions: {
@@ -135,10 +150,6 @@
           return this.getMore();
         } else {
           data.hits = parseInt(data.hits);
-          if (data.hits > this.maxY) {
-            this.maxY = data.hits;
-            this.chart.yAxis[0].setExtremes(0, this.maxY, true, false);
-          }
           this.pendingPlots.push(data);
           if (!data.last) {
             return this.getMore();
@@ -157,17 +168,28 @@
       return decodeURIComponent(results[1].replace(/\+/g, " "));
     };
     HNTrends.prototype.plotPending = function() {
-      var data, series;
+      var adjusted, data, quarter, series;
       data = this.pendingPlots.shift();
       if (!data) {
         return;
       }
       series = this.chart.get(data.term);
       series.next || (series.next = 0);
-      series.data[series.next].update(data.hits);
+      quarter = this.quarters[series.next];
+      adjusted = parseInt(data.hits * quarter.factor);
+      series.data[series.next].update({
+        y: adjusted,
+        actual: data.hits
+      });
       return series.next++;
     };
     return HNTrends;
   })();
   window.HNTrends = new HNTrends();
+  $("#more").click(function(ev) {
+    ev.preventDefault();
+    return $("#lightbox").lightbox_me({
+      centered: true
+    });
+  });
 }).call(this);

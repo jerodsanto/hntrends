@@ -71,3 +71,21 @@ footer {
     vertical-align: middle;
   }
 }
+#lightbox {
+  width: 350px;
+  background: #EEF2F7;
+  padding: 14px 22px;
+  border: 1px solid #536376;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+  -moz-box-shadow: rgba(0, 0, 0, .6) 0px 2px 12px;
+  -webkit-box-shadow: rgba(0, 0, 0, .6) 0px 2px 12px;
+  box-shadow: rgba(0, 0, 0, .6) 0px 2px 12px;
+  h3 {
+    padding-top: 7px;
+  }
+  p {
+    padding: 7px 0;
+  }
+}
