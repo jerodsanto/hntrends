@@ -1,14 +1,22 @@
 (function() {
   var API_URI, Quarter, Term, clients, file, http, port, purgeOldClients, quarters, redis, respondWithJSON, rest, rtg, server, static, sys, unixTime, url, _;
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
   API_URI = "http://api.thriftdb.com/api.hnsearch.com/items/_search";
+
   _ = require("underscore");
+
   sys = require("sys");
+
   http = require("http");
+
   rest = require("restler");
+
   url = require("url");
+
   static = require("node-static");
+
   file = new static.Server("./public");
+
   if (process.env.REDISTOGO_URL) {
     rtg = url.parse(process.env.REDISTOGO_URL);
     redis = require("redis").createClient(rtg.port, rtg.hostname);
@@ -16,10 +24,13 @@
   } else {
     redis = require("redis").createClient();
   }
+
   unixTime = function(date) {
     return Math.round(date.getTime() / 1000);
   };
+
   Quarter = (function() {
+
     function Quarter(id, name, start, end, totalHits) {
       this.id = id;
       this.name = name;
@@ -27,54 +38,67 @@
       this.end = end;
       this.totalHits = totalHits;
     }
+
     Quarter.prototype.queryString = function() {
       return "create_ts:[" + this.start + " TO " + this.end + "]";
     };
+
     Quarter.prototype.factor = function(mostRecent) {
       return mostRecent.totalHits / this.totalHits;
     };
+
     return Quarter;
+
   })();
+
   Term = (function() {
+
     function Term(term, quarter, client, last) {
       this.term = term;
       this.quarter = quarter;
       this.client = client;
       this.last = last != null ? last : false;
     }
+
     Term.prototype.getHits = function() {
-      return redis.hget("hntrends:term:" + this.term, this.quarter.id, __bind(function(err, res) {
+      var _this = this;
+      return redis.hget("hntrends:term:" + this.term, this.quarter.id, function(err, res) {
         if (res) {
-          this.hits = res;
-          return this.storeHitsForClient();
+          _this.hits = res;
+          return _this.storeHitsForClient();
         } else {
-          return this.getRemoteHits();
+          return _this.getRemoteHits();
         }
-      }, this));
+      });
     };
+
     Term.prototype.getRemoteHits = function() {
       var options, request;
+      var _this = this;
       options = {
         query: {
           "q": this.term,
           "filter[queries][]": this.quarter.queryString(),
           "limit": 0,
-          "weights[username]": 0.0
+          "weights[title]": 1.0,
+          "weights[text]": 1,
+          0: 0
         }
       };
       request = rest.get(API_URI, options);
       request.on("error", function(data, response) {
         return sys.puts("api error: " + data);
       });
-      return request.on("complete", __bind(function(data) {
+      return request.on("complete", function(data) {
         var key;
-        this.hits = JSON.parse(data).hits;
-        key = "hntrends:term:" + this.term;
-        redis.hset(key, this.quarter.id, this.hits);
-        redis.expireat(key, unixTime(new Date("2011-10-01 GMT")));
-        return this.storeHitsForClient();
-      }, this));
+        _this.hits = JSON.parse(data).hits;
+        key = "hntrends:term:" + _this.term;
+        redis.hset(key, _this.quarter.id, _this.hits);
+        redis.expireat(key, unixTime(new Date("2012-01-01 GMT")));
+        return _this.storeHitsForClient();
+      });
     };
+
     Term.prototype.storeHitsForClient = function() {
       return this.client.termHits.push({
         term: this.term,
@@ -83,6 +107,7 @@
         last: this.last
       });
     };
+
     Term.prototype.sendTrend = function() {
       return this.client.send({
         "term": this.term,
@@ -90,25 +115,30 @@
         "hits": this.hits
       });
     };
+
     return Term;
+
   })();
-  quarters = [new Quarter("2007-1", "2007", "2007-01-01T00:00:00Z", "2007-03-31T23:59:59Z", 7683), new Quarter("2007-2", "Q2 2007", "2007-04-01T00:00:00Z", "2007-06-30T23:59:59Z", 22974), new Quarter("2007-3", "Q3 2007", "2007-07-01T00:00:00Z", "2007-09-30T23:59:59Z", 28431), new Quarter("2007-4", "Q4 2007", "2007-10-01T00:00:00Z", "2007-12-31T23:59:59Z", 31325), new Quarter("2008-1", "2008", "2008-01-01T00:00:00Z", "2008-03-31T23:59:59Z", 54923), new Quarter("2008-2", "Q2 2008", "2008-04-01T00:00:00Z", "2008-06-30T23:59:59Z", 76839), new Quarter("2008-3", "Q3 2008", "2008-07-01T00:00:00Z", "2008-09-30T23:59:59Z", 81093), new Quarter("2008-4", "Q4 2008", "2008-10-01T00:00:00Z", "2008-12-31T23:59:59Z", 89281), new Quarter("2009-1", "2009", "2009-01-01T00:00:00Z", "2009-03-31T23:59:59Z", 116194), new Quarter("2009-2", "Q2 2009", "2009-04-01T00:00:00Z", "2009-06-30T23:59:59Z", 129283), new Quarter("2009-3", "Q3 2009", "2009-07-01T00:00:00Z", "2009-09-30T23:59:59Z", 159930), new Quarter("2009-4", "Q4 2009", "2009-10-01T00:00:00Z", "2009-12-31T23:59:59Z", 157422), new Quarter("2010-1", "2010", "2010-01-01T00:00:00Z", "2010-03-31T23:59:59Z", 192754), new Quarter("2010-2", "Q2 2010", "2010-04-01T00:00:00Z", "2010-06-30T23:59:59Z", 225210), new Quarter("2010-3", "Q3 2010", "2010-07-01T00:00:00Z", "2010-09-30T23:59:59Z", 248110), new Quarter("2010-4", "Q4 2010", "2010-10-01T00:00:00Z", "2010-12-31T23:59:59Z", 288470), new Quarter("2011-1", "2011", "2011-01-01T00:00:00Z", "2011-03-31T23:59:59Z", 311190), new Quarter("2011-2", "Q2 2011", "2011-04-01T00:00:00Z", "2011-06-30T23:59:59Z", 290679)];
+
+  quarters = [new Quarter("2007-1", "2007", "2007-01-01T00:00:00Z", "2007-03-31T23:59:59Z", 7683), new Quarter("2007-2", "Q2 2007", "2007-04-01T00:00:00Z", "2007-06-30T23:59:59Z", 22974), new Quarter("2007-3", "Q3 2007", "2007-07-01T00:00:00Z", "2007-09-30T23:59:59Z", 28431), new Quarter("2007-4", "Q4 2007", "2007-10-01T00:00:00Z", "2007-12-31T23:59:59Z", 31325), new Quarter("2008-1", "2008", "2008-01-01T00:00:00Z", "2008-03-31T23:59:59Z", 54923), new Quarter("2008-2", "Q2 2008", "2008-04-01T00:00:00Z", "2008-06-30T23:59:59Z", 76839), new Quarter("2008-3", "Q3 2008", "2008-07-01T00:00:00Z", "2008-09-30T23:59:59Z", 81093), new Quarter("2008-4", "Q4 2008", "2008-10-01T00:00:00Z", "2008-12-31T23:59:59Z", 89281), new Quarter("2009-1", "2009", "2009-01-01T00:00:00Z", "2009-03-31T23:59:59Z", 116194), new Quarter("2009-2", "Q2 2009", "2009-04-01T00:00:00Z", "2009-06-30T23:59:59Z", 129283), new Quarter("2009-3", "Q3 2009", "2009-07-01T00:00:00Z", "2009-09-30T23:59:59Z", 159930), new Quarter("2009-4", "Q4 2009", "2009-10-01T00:00:00Z", "2009-12-31T23:59:59Z", 157422), new Quarter("2010-1", "2010", "2010-01-01T00:00:00Z", "2010-03-31T23:59:59Z", 192754), new Quarter("2010-2", "Q2 2010", "2010-04-01T00:00:00Z", "2010-06-30T23:59:59Z", 225210), new Quarter("2010-3", "Q3 2010", "2010-07-01T00:00:00Z", "2010-09-30T23:59:59Z", 248110), new Quarter("2010-4", "Q4 2010", "2010-10-01T00:00:00Z", "2010-12-31T23:59:59Z", 288470), new Quarter("2011-1", "2011", "2011-01-01T00:00:00Z", "2011-03-31T23:59:59Z", 311190), new Quarter("2011-2", "Q2 2011", "2011-04-01T00:00:00Z", "2011-06-30T23:59:59Z", 290672), new Quarter("2011-3", "Q3 2011", "2011-07-01T00:00:00Z", "2011-09-30T23:59:59Z", 298689)];
+
   clients = {};
+
   respondWithJSON = function(response, code, object) {
     response.writeHead(code, {
       "Content-Type": "text/plain"
     });
     return response.end(JSON.stringify(object));
   };
+
   purgeOldClients = function() {
     var now;
     now = new Date();
     return _.each(clients, function(object, key) {
-      if (now - object.timestamp > 30 * 1000) {
-        return delete clients[key];
-      }
+      if (now - object.timestamp > 30 * 1000) return delete clients[key];
     });
   };
+
   server = http.createServer(function(request, response) {
     var client, clientId, deets, more, quartersInfo, terms;
     deets = url.parse(request.url, true);
@@ -176,9 +206,13 @@
         return file.serve(request, response);
     }
   });
+
   port = process.env.PORT || 3000;
+
   server.listen(port, function() {
     return sys.puts("listening on port " + port + "...");
   });
+
   setInterval(purgeOldClients, 3000);
+
 }).call(this);

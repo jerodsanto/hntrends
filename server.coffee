@@ -44,7 +44,8 @@ class Term
         "q": @term
         "filter[queries][]": @quarter.queryString()
         "limit": 0
-        "weights[username]": 0.0
+        "weights[title]": 1.0,
+        "weights[text]": 1,0
       }
     }
 
@@ -57,7 +58,7 @@ class Term
       @hits = JSON.parse(data).hits
       key = "hntrends:term:#{@term}"
       redis.hset key, @quarter.id, @hits
-      redis.expireat key, unixTime(new Date("2011-10-01 GMT"))
+      redis.expireat key, unixTime(new Date("2012-01-01 GMT"))
       @storeHitsForClient()
 
   storeHitsForClient: ->
@@ -74,6 +75,7 @@ class Term
     }
 
 # TODO - make this dynamic based on today's quarter
+# totalHits: http://api.thriftdb.com/api.hnsearch.com/items/_search?filter[queries][]=create_ts:[2011-04-01T00:00:00Z%20TO%202011-06-30T23:59:59Z]&limit=0
 quarters = [
   new Quarter "2007-1", "2007",    "2007-01-01T00:00:00Z", "2007-03-31T23:59:59Z", 7683
   new Quarter "2007-2", "Q2 2007", "2007-04-01T00:00:00Z", "2007-06-30T23:59:59Z", 22974
@@ -92,7 +94,9 @@ quarters = [
   new Quarter "2010-3", "Q3 2010", "2010-07-01T00:00:00Z", "2010-09-30T23:59:59Z", 248110
   new Quarter "2010-4", "Q4 2010", "2010-10-01T00:00:00Z", "2010-12-31T23:59:59Z", 288470
   new Quarter "2011-1", "2011",    "2011-01-01T00:00:00Z", "2011-03-31T23:59:59Z", 311190
-  new Quarter "2011-2", "Q2 2011", "2011-04-01T00:00:00Z", "2011-06-30T23:59:59Z", 290679
+  new Quarter "2011-2", "Q2 2011", "2011-04-01T00:00:00Z", "2011-06-30T23:59:59Z", 290672
+  new Quarter "2011-3", "Q3 2011", "2011-07-01T00:00:00Z", "2011-09-30T23:59:59Z", 298689
+  # new Quarter "2011-4", "Q4 2011", "2011-10-01T00:00:00Z", "2011-12-31T23:59:59Z", UNKNOWN
 ]
 
 clients = {}
