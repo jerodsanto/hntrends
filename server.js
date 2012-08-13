@@ -1,5 +1,5 @@
 (function() {
-  var API_URI, Quarter, Term, clients, file, http, moment, port, purgeOldClients, quarters, redis, refreshQuarters, respondWithJSON, rest, rtg, server, static, unixTime, url, util, _;
+  var API_URI, Quarter, Term, clients, file, http, moment, port, purgeOldClients, quarters, redis, refreshQuarters, respondWithJSON, rest, rtg, server, static, url, util, _;
 
   API_URI = "http://api.thriftdb.com/api.hnsearch.com/items/_search";
 
@@ -30,10 +30,6 @@
   } else {
     redis = require("redis").createClient();
   }
-
-  unixTime = function(date) {
-    return Math.round(date.getTime() / 1000);
-  };
 
   Term = (function() {
 
@@ -78,7 +74,7 @@
         _this.hits = JSON.parse(data).hits;
         key = "hntrends:term:" + _this.term;
         redis.hset(key, _this.quarter.id, _this.hits);
-        redis.expireat(key, unixTime(new Date("2012-01-01 GMT")));
+        redis.expireat(key, moment().add("years", 1).unix());
         return _this.storeHitsForClient();
       });
     };
