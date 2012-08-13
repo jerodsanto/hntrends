@@ -120,7 +120,6 @@ class Quarter
     redis.get @redisKey, (err, res) =>
       if res
         @totalHits = res
-        util.puts "Redis hits for quarter: #{@id} is #{@totalHits}"
       else
         @getRemoteTotalHits()
 
@@ -139,11 +138,9 @@ class Quarter
 
     request.on "complete", (data) =>
       @totalHits = JSON.parse(data).hits
-      util.puts "Remote hits for quarter: #{@id} is #{@totalHits}"
       redis.set @redisKey, @totalHits
 
 refreshQuarters = (refreshToQuarter) ->
-  util.puts "refreshing quarters"
   if quarters.length
     currentQuarter = _.last quarters
   else

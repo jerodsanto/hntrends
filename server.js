@@ -200,8 +200,7 @@
       var _this = this;
       return redis.get(this.redisKey, function(err, res) {
         if (res) {
-          _this.totalHits = res;
-          return util.puts("Redis hits for quarter: " + _this.id + " is " + _this.totalHits);
+          return _this.totalHits = res;
         } else {
           return _this.getRemoteTotalHits();
         }
@@ -223,7 +222,6 @@
       });
       return request.on("complete", function(data) {
         _this.totalHits = JSON.parse(data).hits;
-        util.puts("Remote hits for quarter: " + _this.id + " is " + _this.totalHits);
         return redis.set(_this.redisKey, _this.totalHits);
       });
     };
@@ -234,7 +232,6 @@
 
   refreshQuarters = function(refreshToQuarter) {
     var currentQuarter, nextQuarter, _results;
-    util.puts("refreshing quarters");
     if (quarters.length) {
       currentQuarter = _.last(quarters);
     } else {
