@@ -84,7 +84,7 @@ class HNTrends
                             symbol: "circle"
                             radius: 5
                             lineWidth: 1
-        series: []
+            series: []
 
         # using this as series data allows the categories to be static
         nullFill = _.map @quarters, (q) -> null

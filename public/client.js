@@ -126,11 +126,9 @@
               }
             }
           }
-        }
-      };
-      ({
+        },
         series: []
-      });
+      };
       nullFill = _.map(this.quarters, function(q) {
         return null;
       });
