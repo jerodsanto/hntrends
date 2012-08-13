@@ -58,9 +58,7 @@
       var nullFill, options;
       $("#examples").hide();
       options = {
-        colors: ["#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"]
-      };
-      ({
+        colors: ["#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"],
         chart: {
           renderTo: "chart"
         },
@@ -128,7 +126,9 @@
               }
             }
           }
-        },
+        }
+      };
+      ({
         series: []
       });
       nullFill = _.map(this.quarters, function(q) {

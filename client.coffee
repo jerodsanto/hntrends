@@ -37,53 +37,53 @@ class HNTrends
         $("#examples").hide()
         options =
             colors: ["#FF0000", "#FFCC00", "#6699FF", "#8C1A99", "#99FF00"]
-        chart:
-            renderTo: "chart"
-        title: null
-        tooltip:
-            crosshairs: true
-            formatter: ->
-                a = Highcharts.numberFormat(this.y, 0, ",")
-                b = Highcharts.numberFormat(this.point.actual, 0, ",")
-                "<b>#{this.series.name}</b>in #{this.x}: #{a} adjusted (#{b} actual)"
-        legend:
-            itemStyle:
-                color: "#666"
-            borderWidth: 0
-            floating: true
-            layout: "vertical"
-            align: "left"
-            x: 70
-            verticalAlign: "top"
-            y: 0
-        xAxis:
-            categories: _.map(@quarters, (q) -> return q.name)
-            labels:
-                step: 4
-        yAxis:
-            title:
-                text: "Hacker Mentions (adjusted for growth)"
-                style:
-                    color: "#ff6600"
-            labels:
+            chart:
+                renderTo: "chart"
+            title: null
+            tooltip:
+                crosshairs: true
+                formatter: ->
+                    a = Highcharts.numberFormat(this.y, 0, ",")
+                    b = Highcharts.numberFormat(this.point.actual, 0, ",")
+                    "<b>#{this.series.name}</b>in #{this.x}: #{a} adjusted (#{b} actual)"
+            legend:
+                itemStyle:
+                    color: "#666"
+                borderWidth: 0
+                floating: true
+                layout: "vertical"
                 align: "left"
-                x: 0
-                y: -2
-            min: 0
-        plotOptions:
-            line:
-                lineWidth: 4
-                states:
-                    hover:
-                        lineWidth: 5
-            marker:
-                enabled: false
-                states:
-                    hover:
-                        enabled: true
-                        symbol: "circle"
-                        radius: 5
-                        lineWidth: 1
+                x: 70
+                verticalAlign: "top"
+                y: 0
+            xAxis:
+                categories: _.map(@quarters, (q) -> return q.name)
+                labels:
+                    step: 4
+            yAxis:
+                title:
+                    text: "Hacker Mentions (adjusted for growth)"
+                    style:
+                        color: "#ff6600"
+                labels:
+                    align: "left"
+                    x: 0
+                    y: -2
+                min: 0
+            plotOptions:
+                line:
+                    lineWidth: 4
+                    states:
+                        hover:
+                            lineWidth: 5
+                marker:
+                    enabled: false
+                    states:
+                        hover:
+                            enabled: true
+                            symbol: "circle"
+                            radius: 5
+                            lineWidth: 1
         series: []
 
         # using this as series data allows the categories to be static
