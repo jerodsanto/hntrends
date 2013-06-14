@@ -3,7 +3,7 @@ $.ajaxSetup {
 }
 
 class HNTrends
-    constructor: (@pendingPlots = [], @maxY = 100, @clientId)->
+    constructor: (@pendingPlots = [], @maxY = 100, @clientId) ->
         @initTerms()
 
     initTerms: ->
@@ -19,10 +19,14 @@ class HNTrends
             @terms = _.first(@terms, 5)
             # interval depends on how many terms we'll be plotting
             interval = switch @terms.length
-                when 1 then 425
-                when 2 then 225
-                else 200
-            setInterval @plotPending, interval
+                when 1 then 450
+                when 2 then 300
+                else 250
+
+            setTimeout =>
+                @interval = setInterval @plotPending, interval
+            , 500
+
             @getQuarters()
         else
             input.focus()
@@ -104,7 +108,7 @@ class HNTrends
             if data.noop
                 @getMore()
             else
-                data.hits = parseInt data.hits
+                data.hits = parseInt data.hits, 10
                 # just add new data to pendingPlots queue to be processed
                 @pendingPlots.push data
                 @getMore() unless data.last
@@ -118,16 +122,21 @@ class HNTrends
 
     plotPending: =>
         data = @pendingPlots.shift()
-        return unless data
-        series = @chart.get(data.term)
+
+        if !data
+            clearInterval @interval
+            return
+
+        series = @chart.get data.term
         # store the index of the next null point to be filled on the series
         series.next or= 0
         quarter  = @quarters[series.next]
-        adjusted = parseInt(data.hits * quarter.factor)
+        adjusted = parseInt(data.hits * quarter.factor, 10)
         series.data[series.next].update({y: adjusted, actual: data.hits})
         series.next++
 
-window.HNTrends = new HNTrends()
-$("#more").click (ev)->
-    ev.preventDefault()
-    $("#lightbox").lightbox_me {centered: true}
+$ ->
+    window.HNT = new HNTrends()
+
+    $("#more").click (event) ->
+        $("#lightbox").lightbox_me {centered: true}

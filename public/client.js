@@ -18,6 +18,7 @@
 
     HNTrends.prototype.initTerms = function() {
       var input, interval, termList, terms;
+      var _this = this;
       terms = this.getParam("q");
       input = $("input[type=text]:first");
       if (terms.length) {
@@ -31,14 +32,16 @@
         interval = (function() {
           switch (this.terms.length) {
             case 1:
-              return 425;
+              return 450;
             case 2:
-              return 225;
+              return 300;
             default:
-              return 200;
+              return 250;
           }
         }).call(this);
-        setInterval(this.plotPending, interval);
+        setTimeout(function() {
+          return _this.interval = setInterval(_this.plotPending, interval);
+        }, 500);
         return this.getQuarters();
       } else {
         return input.focus();
@@ -160,7 +163,7 @@
         if (data.noop) {
           return _this.getMore();
         } else {
-          data.hits = parseInt(data.hits);
+          data.hits = parseInt(data.hits, 10);
           _this.pendingPlots.push(data);
           if (!data.last) return _this.getMore();
         }
@@ -179,11 +182,14 @@
     HNTrends.prototype.plotPending = function() {
       var adjusted, data, quarter, series;
       data = this.pendingPlots.shift();
-      if (!data) return;
+      if (!data) {
+        clearInterval(this.interval);
+        return;
+      }
       series = this.chart.get(data.term);
       series.next || (series.next = 0);
       quarter = this.quarters[series.next];
-      adjusted = parseInt(data.hits * quarter.factor);
+      adjusted = parseInt(data.hits * quarter.factor, 10);
       series.data[series.next].update({
         y: adjusted,
         actual: data.hits
@@ -195,12 +201,12 @@
 
   })();
 
-  window.HNTrends = new HNTrends();
-
-  $("#more").click(function(ev) {
-    ev.preventDefault();
-    return $("#lightbox").lightbox_me({
-      centered: true
+  $(function() {
+    window.HNT = new HNTrends();
+    return $("#more").click(function(event) {
+      return $("#lightbox").lightbox_me({
+        centered: true
+      });
     });
   });
 
