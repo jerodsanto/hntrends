@@ -6,7 +6,7 @@
     "hiredis": "0.1.13",
     "redis": "0.7.1",
     "underscore": "1.1.6",
-    "restler": "0.2.1",
+    "restler": "https://github.com/raymondfeng/restler/tarball/master",
     "moment": "1.7.0"
   }
 }
