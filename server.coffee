@@ -24,11 +24,11 @@ class Term
 
     getHits: ->
         redis.hget "hntrends:term:#{@term}", @quarter.id, (err, res) =>
-        if res
-            @hits = res
-            @storeHitsForClient()
-        else
-            @getRemoteHits()
+            if res
+                @hits = res
+                @storeHitsForClient()
+            else
+                @getRemoteHits()
 
     getRemoteHits: ->
         options = {
@@ -41,7 +41,7 @@ class Term
             }
         }
 
-        request = rest.get(API_URI, options)
+        request = rest.get API_URI, options
 
         request.on "error", (data, response) ->
             util.puts "api error: " + data
@@ -73,7 +73,7 @@ class Quarter
             when 3, 4, 5   then 2
             when 6, 7, 8   then 3
             when 9, 10, 11 then 4
-            new this moment.year(), quarter
+        new this moment.year(), quarter
 
     constructor: (@year, @quarter) ->
         @id = "#{@year}-#{@quarter}"

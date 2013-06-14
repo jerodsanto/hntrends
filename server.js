@@ -144,10 +144,7 @@
     };
 
     Quarter.prototype.queryString = function() {
-      var e, s;
-      s = this.start();
-      e = this.end();
-      return "create_ts:[" + s + " TO " + e + "]";
+      return "create_ts:[" + this.start() + " TO " + this.end() + "]";
     };
 
     Quarter.prototype.factor = function(mostRecent) {
