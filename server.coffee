@@ -6,7 +6,8 @@ http   = require "http"
 rest   = require "restler"
 url    = require "url"
 moment = require "moment"
-file   = new require("node-static").Server("./public")
+statik = require("node-static")
+file   = new statik.Server "./public"
 
 quarters = []
 clients  = {}
@@ -30,15 +31,13 @@ class Term
                 @getRemoteHits()
 
     getRemoteHits: ->
-        options = {
-            query: {
+        options =
+            query:
                 "q": @term
                 "filter[queries][]": @quarter.queryString()
                 "limit": 0
-                "weights[title]": 1.0,
-                "weights[text]": 1,0
-            }
-        }
+                "weights[title]": 1.0
+                "weights[text]": 1.0
 
         request = rest.get API_URI, options
 
@@ -53,12 +52,11 @@ class Term
             @storeHitsForClient()
 
     storeHitsForClient: ->
-        @client.termHits.push {
+        @client.termHits.push
             term: @term
             quarter: @quarter.id
             hits: @hits
             last: @last
-        }
 
 class Quarter
     @fromMoment: (moment) ->

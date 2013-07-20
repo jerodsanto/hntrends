@@ -1,5 +1,5 @@
 (function() {
-  var API_URI, Quarter, Term, clients, file, http, moment, port, purgeOldClients, quarters, redis, refreshQuarters, respondWithJSON, rest, rtg, server, url, util, _;
+  var API_URI, Quarter, Term, clients, file, http, moment, port, purgeOldClients, quarters, redis, refreshQuarters, respondWithJSON, rest, rtg, server, statik, url, util, _;
 
   API_URI = "http://api.thriftdb.com/api.hnsearch.com/items/_search";
 
@@ -15,7 +15,9 @@
 
   moment = require("moment");
 
-  file = new require("node-static").Server("./public");
+  statik = require("node-static");
+
+  file = new statik.Server("./public");
 
   quarters = [];
 
@@ -58,8 +60,7 @@
           "filter[queries][]": this.quarter.queryString(),
           "limit": 0,
           "weights[title]": 1.0,
-          "weights[text]": 1,
-          0: 0
+          "weights[text]": 1.0
         }
       };
       request = rest.get(API_URI, options);
