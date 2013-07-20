@@ -211,7 +211,6 @@
         } else {
           html = "<ol>";
           html += _.map(stories, function(s) {
-            console.log(s);
             return "<li><a href='https://news.ycombinator.com/item?id=" + s.id + "' target='_blank'>" + s.title + "</a> (" + s.points + " points)</li>";
           }).join("");
           html += "</ol>";

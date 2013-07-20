@@ -149,7 +149,6 @@ class HNTrends
             else
                 html = "<ol>"
                 html += _.map(stories, (s) ->
-                    console.log s
                     "<li><a href='https://news.ycombinator.com/item?id=#{s.id}' target='_blank'>#{s.title}</a> (#{s.points} points)</li>"
                 ).join ""
                 html += "</ol>"
