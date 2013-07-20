@@ -68,12 +68,14 @@ class Term
 
 class Quarter
     @fromMoment: (moment) ->
-        quarter = switch(moment.month())
-            when 0, 1, 2   then 1
-            when 3, 4, 5   then 2
-            when 6, 7, 8   then 3
-            when 9, 10, 11 then 4
-        new this moment.year(), quarter
+        # we always want to go back one quarter from the current moment
+        [year, quarter] = switch moment.month()
+            when 0, 1, 2   then [moment.year() - 1, 4]
+            when 3, 4, 5   then [moment.year(), 1]
+            when 6, 7, 8   then [moment.year(), 2]
+            when 9, 10, 11 then [moment.year(), 3]
+
+        new this year, quarter
 
     constructor: (@year, @quarter) ->
         @id = "#{@year}-#{@quarter}"

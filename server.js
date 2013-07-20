@@ -103,28 +103,28 @@
   Quarter = (function() {
 
     Quarter.fromMoment = function(moment) {
-      var quarter;
-      quarter = (function() {
+      var quarter, year, _ref;
+      _ref = (function() {
         switch (moment.month()) {
           case 0:
           case 1:
           case 2:
-            return 1;
+            return [moment.year() - 1, 4];
           case 3:
           case 4:
           case 5:
-            return 2;
+            return [moment.year(), 1];
           case 6:
           case 7:
           case 8:
-            return 3;
+            return [moment.year(), 2];
           case 9:
           case 10:
           case 11:
-            return 4;
+            return [moment.year(), 3];
         }
-      })();
-      return new this(moment.year(), quarter);
+      })(), year = _ref[0], quarter = _ref[1];
+      return new this(year, quarter);
     };
 
     function Quarter(year, quarter) {
