@@ -224,11 +224,10 @@ server = http.createServer (request, response) ->
                 util.puts "bad request: #{request.url}"
                 respondWithJSON response, 422, {status: "missing or unknown client id"}
         when "/stories"
-            client = clients[deets.query.clientId]
-            if client && deets.query.term && deets.query.quarter
+            if deets.query.term && deets.query.quarter
                 util.puts "stories request: #{request.url}"
                 quarter = quarters[deets.query.quarter]
-                term = new Term deets.query.term, quarter, client
+                term = new Term deets.query.term, quarter
                 term.getTopStories (stories) ->
                     respondWithJSON response, 200, stories
             else

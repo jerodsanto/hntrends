@@ -337,11 +337,10 @@
         }
         break;
       case "/stories":
-        client = clients[deets.query.clientId];
-        if (client && deets.query.term && deets.query.quarter) {
+        if (deets.query.term && deets.query.quarter) {
           util.puts("stories request: " + request.url);
           quarter = quarters[deets.query.quarter];
-          term = new Term(deets.query.term, quarter, client);
+          term = new Term(deets.query.term, quarter);
           return term.getTopStories(function(stories) {
             return respondWithJSON(response, 200, stories);
           });
