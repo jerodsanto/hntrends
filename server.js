@@ -77,6 +77,30 @@
       });
     };
 
+    Term.prototype.getTopStories = function(callback) {
+      var options, request;
+      options = {
+        query: {
+          "q": this.term,
+          "filter[queries][]": this.quarter.queryString(),
+          "filter[fields][type][]": "submission",
+          "sortby": "points desc",
+          "limit": 10
+        }
+      };
+      request = rest.get(API_URI, options);
+      request.on("error", function(data, response) {
+        return util.puts("api error: " + data);
+      });
+      return request.on("complete", function(data) {
+        var stories;
+        stories = _.map(JSON.parse(data).results, function(r) {
+          return r.item;
+        });
+        return callback(stories);
+      });
+    };
+
     Term.prototype.storeHitsForClient = function() {
       return this.client.termHits.push({
         term: this.term,
@@ -249,7 +273,7 @@
   refreshQuarters(Quarter.fromMoment(moment()));
 
   server = http.createServer(function(request, response) {
-    var client, clientId, deets, more, quartersInfo, terms;
+    var client, clientId, deets, more, quarter, quartersInfo, term, terms;
     deets = url.parse(request.url, true);
     switch (deets.pathname) {
       case "/quarters":
@@ -309,6 +333,22 @@
           util.puts("bad request: " + request.url);
           return respondWithJSON(response, 422, {
             status: "missing or unknown client id"
+          });
+        }
+        break;
+      case "/stories":
+        client = clients[deets.query.clientId];
+        if (client && deets.query.term && deets.query.quarter) {
+          util.puts("stories request: " + request.url);
+          quarter = quarters[deets.query.quarter];
+          term = new Term(deets.query.term, quarter, client);
+          return term.getTopStories(function(stories) {
+            return respondWithJSON(response, 200, stories);
+          });
+        } else {
+          util.puts("bad request: " + request.url);
+          return respondWithJSON(response, 422, {
+            status: "missing required params"
           });
         }
         break;

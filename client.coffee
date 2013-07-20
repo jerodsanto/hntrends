@@ -75,13 +75,17 @@ class HNTrends
                     y: -2
                 min: 0
             plotOptions:
+                series:
+                    cursor: "pointer"
+                    point:
+                        events:
+                            click: @getTopStories
                 line:
                     lineWidth: 4
                     states:
                         hover:
                             lineWidth: 5
                 marker:
-                    enabled: false
                     states:
                         hover:
                             enabled: true
@@ -120,6 +124,38 @@ class HNTrends
         return "" unless results
         return decodeURIComponent results[1].replace(/\+/g, " ")
 
+    getTopStories: (event) =>
+        $stories = $("#stories")
+        quarter = @quarters[event.target.x]
+        term = event.target.series.name
+
+        params =
+            clientId: @clientId
+            term: term
+            quarter: event.target.x
+
+        $stories
+            .find("h3")
+                .text("Top 10 #{term} stories during #{quarter.name}")
+                .end()
+            .find(".stories")
+                .html("<div class='spinner'></div>")
+                .end()
+            .lightbox_me {centered: true}
+
+        $.getJSON "/stories", params, (stories) =>
+            if stories.length == 0
+                html = "<p>No stories found :(</p>"
+            else
+                html = "<ol>"
+                html += _.map(stories, (s) ->
+                    console.log s
+                    "<li><a href='https://news.ycombinator.com/item?id=#{s.id}' target='_blank'>#{s.title}</a> (#{s.points} points)</li>"
+                ).join ""
+                html += "</ol>"
+
+            $stories.find(".stories").html html
+
     plotPending: =>
         data = @pendingPlots.shift()
 
@@ -139,4 +175,4 @@ $ ->
     window.HNT = new HNTrends()
 
     $("#more").click (event) ->
-        $("#lightbox").lightbox_me {centered: true}
+        $("#about").lightbox_me {centered: true}

@@ -1,24 +1,24 @@
 (function() {
-  var HNTrends;
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var HNTrends,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   $.ajaxSetup({
     cache: false
   });
 
   HNTrends = (function() {
-
     function HNTrends(pendingPlots, maxY, clientId) {
       this.pendingPlots = pendingPlots != null ? pendingPlots : [];
       this.maxY = maxY != null ? maxY : 100;
       this.clientId = clientId;
       this.plotPending = __bind(this.plotPending, this);
+      this.getTopStories = __bind(this.getTopStories, this);
       this.initTerms();
     }
 
     HNTrends.prototype.initTerms = function() {
-      var input, interval, termList, terms;
-      var _this = this;
+      var input, interval, termList, terms,
+        _this = this;
       terms = this.getParam("q");
       input = $("input[type=text]:first");
       if (terms.length) {
@@ -110,6 +110,14 @@
           min: 0
         },
         plotOptions: {
+          series: {
+            cursor: "pointer",
+            point: {
+              events: {
+                click: this.getTopStories
+              }
+            }
+          },
           line: {
             lineWidth: 4,
             states: {
@@ -119,7 +127,6 @@
             }
           },
           marker: {
-            enabled: false,
             states: {
               hover: {
                 enabled: true,
@@ -165,7 +172,9 @@
         } else {
           data.hits = parseInt(data.hits, 10);
           _this.pendingPlots.push(data);
-          if (!data.last) return _this.getMore();
+          if (!data.last) {
+            return _this.getMore();
+          }
         }
       });
     };
@@ -175,8 +184,40 @@
       name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
       regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
       results = regex.exec(window.location.href);
-      if (!results) return "";
+      if (!results) {
+        return "";
+      }
       return decodeURIComponent(results[1].replace(/\+/g, " "));
+    };
+
+    HNTrends.prototype.getTopStories = function(event) {
+      var $stories, params, quarter, term,
+        _this = this;
+      $stories = $("#stories");
+      quarter = this.quarters[event.target.x];
+      term = event.target.series.name;
+      params = {
+        clientId: this.clientId,
+        term: term,
+        quarter: event.target.x
+      };
+      $stories.find("h3").text("Top 10 " + term + " stories during " + quarter.name).end().find(".stories").html("<div class='spinner'></div>").end().lightbox_me({
+        centered: true
+      });
+      return $.getJSON("/stories", params, function(stories) {
+        var html;
+        if (stories.length === 0) {
+          html = "<p>No stories found :(</p>";
+        } else {
+          html = "<ol>";
+          html += _.map(stories, function(s) {
+            console.log(s);
+            return "<li><a href='https://news.ycombinator.com/item?id=" + s.id + "' target='_blank'>" + s.title + "</a> (" + s.points + " points)</li>";
+          }).join("");
+          html += "</ol>";
+        }
+        return $stories.find(".stories").html(html);
+      });
     };
 
     HNTrends.prototype.plotPending = function() {
@@ -204,7 +245,7 @@
   $(function() {
     window.HNT = new HNTrends();
     return $("#more").click(function(event) {
-      return $("#lightbox").lightbox_me({
+      return $("#about").lightbox_me({
         centered: true
       });
     });

@@ -42,7 +42,7 @@ class Term
         request = rest.get API_URI, options
 
         request.on "error", (data, response) ->
-            util.puts "api error: " + data
+            util.puts "api error: #{data}"
 
         request.on "complete", (data) =>
             @hits = JSON.parse(data).hits
@@ -50,6 +50,24 @@ class Term
             redis.hset key, @quarter.id, @hits
             redis.expireat key, moment().add("years", 1).unix()
             @storeHitsForClient()
+
+    getTopStories: (callback) ->
+        options =
+            query:
+                "q": @term
+                "filter[queries][]": @quarter.queryString()
+                "filter[fields][type][]": "submission"
+                "sortby": "points desc"
+                "limit": 10
+
+        request = rest.get API_URI, options
+
+        request.on "error", (data, response) ->
+            util.puts "api error: #{data}"
+
+        request.on "complete", (data) ->
+            stories = _.map(JSON.parse(data).results, (r) -> r.item)
+            callback stories
 
     storeHitsForClient: ->
         @client.termHits.push
@@ -205,6 +223,17 @@ server = http.createServer (request, response) ->
             else
                 util.puts "bad request: #{request.url}"
                 respondWithJSON response, 422, {status: "missing or unknown client id"}
+        when "/stories"
+            client = clients[deets.query.clientId]
+            if client && deets.query.term && deets.query.quarter
+                util.puts "stories request: #{request.url}"
+                quarter = quarters[deets.query.quarter]
+                term = new Term deets.query.term, quarter, client
+                term.getTopStories (stories) ->
+                    respondWithJSON response, 200, stories
+            else
+                util.puts "bad request: #{request.url}"
+                respondWithJSON response, 422, {status: "missing required params"}
         else
             file.serve request, response
 
