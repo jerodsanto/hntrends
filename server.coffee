@@ -87,10 +87,7 @@ class Quarter
         mostRecent.totalHits / @totalHits
 
     name: ->
-        if @quarter == 1
-            "#{@year}"
-        else
-            "Q#{@quarter} #{@year}"
+        "Q#{@quarter} #{@year}"
 
     start: ->
         date = switch @quarter

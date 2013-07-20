@@ -141,11 +141,7 @@
     };
 
     Quarter.prototype.name = function() {
-      if (this.quarter === 1) {
-        return "" + this.year;
-      } else {
-        return "Q" + this.quarter + " " + this.year;
-      }
+      return "Q" + this.quarter + " " + this.year;
     };
 
     Quarter.prototype.start = function() {
