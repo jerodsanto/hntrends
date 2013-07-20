@@ -1,5 +1,5 @@
 (function() {
-  var API_URI, Quarter, Term, clients, file, http, moment, port, purgeOldClients, quarters, redis, refreshQuarters, respondWithJSON, rest, rtg, server, static, url, util, _;
+  var API_URI, Quarter, Term, clients, file, http, moment, port, purgeOldClients, quarters, redis, refreshQuarters, respondWithJSON, rest, rtg, server, url, util, _;
 
   API_URI = "http://api.thriftdb.com/api.hnsearch.com/items/_search";
 
@@ -13,11 +13,9 @@
 
   url = require("url");
 
-  static = require("node-static");
-
   moment = require("moment");
 
-  file = new static.Server("./public");
+  file = new require("node-static").Server("./public");
 
   quarters = [];
 
@@ -32,7 +30,6 @@
   }
 
   Term = (function() {
-
     function Term(term, quarter, client, last) {
       this.term = term;
       this.quarter = quarter;
@@ -53,8 +50,8 @@
     };
 
     Term.prototype.getRemoteHits = function() {
-      var options, request;
-      var _this = this;
+      var options, request,
+        _this = this;
       options = {
         query: {
           "q": this.term,
@@ -88,20 +85,11 @@
       });
     };
 
-    Term.prototype.sendTrend = function() {
-      return this.client.send({
-        "term": this.term,
-        "quarter": this.quarter.id,
-        "hits": this.hits
-      });
-    };
-
     return Term;
 
   })();
 
   Quarter = (function() {
-
     Quarter.fromMoment = function(moment) {
       var quarter, year, _ref;
       _ref = (function() {
@@ -205,8 +193,8 @@
     };
 
     Quarter.prototype.getRemoteTotalHits = function() {
-      var options, request;
-      var _this = this;
+      var options, request,
+        _this = this;
       options = {
         query: {
           "filter[queries][]": this.queryString(),
@@ -255,7 +243,9 @@
     var now;
     now = new Date();
     return _.each(clients, function(object, key) {
-      if (now - object.timestamp > 30 * 1000) return delete clients[key];
+      if (now - object.timestamp > 30 * 1000) {
+        return delete clients[key];
+      }
     });
   };
 

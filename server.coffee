@@ -5,12 +5,11 @@ util   = require "util"
 http   = require "http"
 rest   = require "restler"
 url    = require "url"
-static = require "node-static"
 moment = require "moment"
-file   = new static.Server("./public")
+file   = new require("node-static").Server("./public")
 
 quarters = []
-clients = {}
+clients  = {}
 
 if process.env.REDISTOGO_URL
     rtg   = url.parse process.env.REDISTOGO_URL
@@ -59,11 +58,6 @@ class Term
             quarter: @quarter.id
             hits: @hits
             last: @last
-        }
-
-    sendTrend: ->
-        @client.send {
-            "term": @term, "quarter": @quarter.id, "hits": @hits
         }
 
 class Quarter
